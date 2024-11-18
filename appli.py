@@ -2,12 +2,12 @@
 in this file we will use the functions from the other files to create a gpx file with the shortest path.
 
 """
-import networkx as nx
-import random as Random
-import json
-import uploadGpxToDrive
-import uploadToDrive
-import requests
+# import networkx as nx
+# import random as Random
+# import json
+# import uploadGpxToDrive
+# import uploadToDrive
+# import requests
 import osmnx as ox
 from osmnx import distance
 
@@ -19,17 +19,13 @@ import convertGpxToMapsLink
 from geopy.geocoders import Nominatim
 
 
-#TODO - delete this function
-def get_coordinates_from_address(address):
-    geolocator = Nominatim(user_agent="geoapiExercises")
-    location = geolocator.geocode(address)
-    if location:
-        return location.latitude, location.longitude
-    else:
-        raise ValueError("Address not found")
 
 
 def address_to_coordinates(street, number, city, country):
+    """
+    This function will convert an address to coordinates
+    :return: return the coordinates of the address in the format (latitude, longitude)
+    """
     # Combine the address parts into a single string
     address = f"{number} {street}, {city}, {country}"
 
@@ -135,3 +131,14 @@ def generate_circular_route(street, number, city, country, path_length):
 #     # Convert GPX to Google Maps link
 #     maps_link = convertGpxToMapsLink.get_google_maps_link("shortest_path.gpx")
 #     return maps_link
+
+
+
+# # - delete this function
+# def get_coordinates_from_address(address):
+#     geolocator = Nominatim(user_agent="geoapiExercises")
+#     location = geolocator.geocode(address)
+#     if location:
+#         return location.latitude, location.longitude
+#     else:
+#         raise ValueError("Address not found")

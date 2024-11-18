@@ -1,12 +1,10 @@
-import time
 
-import rasterio as rio
-import googlemaps
+
+import time
 import osmnx as ox
 from pyhigh import get_elevation
-from googlemaps.elevation import elevation
-from networkx import desargues_graph, nodes
 import requests
+
 
 """
     in this file we will build the graph of the city and add the weight to the edges.
@@ -142,6 +140,14 @@ if __name__ == '__main__':
     add_height_diff_to_edges(city_graph)
 
 
+
+
+
+#
+# from googlemaps.elevation import elevation
+# from networkx import desargues_graph, nodes
+# import rasterio as rio
+# import googlemaps
 #
 # def add_elevation_data_with_osmnx(graph):
 #     return asyncio.run(add_elevation_data_with_osmnx_async(graph))
