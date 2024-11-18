@@ -15,6 +15,7 @@ def parse_gpx(file_path):
 
 def generate_google_maps_url(coordinates):
     base_url = "https://www.google.com/maps/dir/"
+    # base_url = "https://www.google.com/maps/dir/?api=1&travelmode=bicycling"
     path = "/".join([f"{lat},{lon}" for lat, lon in coordinates])
     return f"{base_url}{path}"
 

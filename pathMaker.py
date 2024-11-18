@@ -31,29 +31,18 @@ def get_node_from_address(city_graph, city, street, number):
     node = ox.nearest_nodes(city_graph, point[1], point[0])
     return node
 
+#
+# def run_test():
+#     city_graph = graph_builder.get_city_graph()
+#     origin = city_graph.nodes[0]
+#     destination = city_graph.nodes[1]
+#     best_path = get_shortest_path(city_graph, origin, destination)
+#     return best_path
 
-def get_circular_path(city_graph, origin, distance):
-    #we want to find path with X length and return the url
-    #this func will use the shortest path func and will return the  circular path
-    #we want now to find 4 nodes.
-    #origin, node1, node2, node3, destination=origin
-    #we want to find node in distance/4 from the origin and than from node1 to node2 and so on
-
-    pass
-
-
-
-def run_test():
-    city_graph = graph_builder.get_city_graph()
-    origin = city_graph.nodes[0]
-    destination = city_graph.nodes[1]
-    best_path = get_shortest_path(city_graph, origin, destination)
-    return best_path
-
-if __name__ == '__main__':
-    city = "Jerusalem"
-    street = "King George"
-    number = 20
-    city_graph = graph_builder.get_city_graph()
-    origin = get_node_from_address(city_graph, city, street, number)
-    print(origin)
+# if __name__ == '__main__':
+#     city = "Jerusalem"
+#     street = "King George"
+#     number = 20
+#     city_graph = graph_builder.get_city_graph()
+#     origin = get_node_from_address(city_graph, city, street, number)
+#     print(origin)

@@ -42,6 +42,7 @@ def circularPath():
     distance = data.get('distance')
     hills = data.get('hills')
     maps_link = appli.generate_circular_route(street, number, city, country, distance)
+    print(maps_link)
     return jsonify({"maps_link": maps_link})
 
 if __name__ == '__main__':
