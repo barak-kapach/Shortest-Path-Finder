@@ -11,7 +11,7 @@ def length_of_path(graph, path):
     return length
 
 
-def find_circular_routes(graph, start_node, path_length, max_depth=10):
+def find_circular_routes(graph, start_node, path_length, max_depth=50):
     """
 
     :param graph: city graph
@@ -21,9 +21,14 @@ def find_circular_routes(graph, start_node, path_length, max_depth=10):
     :return:
     """
     def dfs(cur_node, path, visited):
-        if len(path) > 1 and cur_node == start_node:
+        if len(path) > 2 and cur_node == start_node:
             # filter the path that are not in the relevant length
-            # if length_of_path(graph, path) > path_length + 0.5:
+            #path length is the length of the path in KM and the function return the length of the path in meters
+            if length_of_path(graph, path) >(path_length + path_length * 0.5)*1000:
+                print("length_of_path(graph, path)-->> bigger ", str(length_of_path(graph, path)))
+                return
+            # if length_of_path(graph, path) < (path_length - path_length * 0.5)*1000:
+            #     print("length_of_path(graph, path)-->>smaller ", str(length_of_path(graph, path)))
             #     return
             circular_paths.append(path[:])
             return
@@ -42,35 +47,60 @@ def find_circular_routes(graph, start_node, path_length, max_depth=10):
     return circular_paths
 
 
-def calculate_grade_of_circular_route(city_graph, path, weight='weight'):
-    # iin this func we need to get the relevant weight of the path
+# def calculate_grade_of_circular_route(city_graph, path, weight='weight'):
+#     # iin this func we need to get the relevant weight of the path
+#     grade = 0
+#     for i in range(len(path) - 1):
+#         u = path[i]
+#         v = path[i + 1]
+#         data = city_graph.get_edge_data(u, v)
+#         grade += data['length']
+#     return grade
+
+
+def calculate_grade_of_circular_route(city_graph, path, weight='length'):
+    # In this function, we need to get the relevant weight of the path
     grade = 0
     for i in range(len(path) - 1):
         u = path[i]
         v = path[i + 1]
-        data = city_graph.get_edge_data(u, v)
-        grade += data['length']
+        try:
+            length = nx.shortest_path_length(city_graph, u, v, weight=weight)
+            grade += length
+        except nx.NetworkXNoPath:
+            print(f"No path between {u} and {v}")
     return grade
 
-
-def find_best_circular_route_from_circular_route_list(graph, circular_routes):
-    best_path = None
+def find_best_circular_route_from_circular_route_list(graph, circular_routes, length, weight='length'):
+    path = None
     # create max num for best grade
-    best_path_grade = float('inf')
+    best_path_grade = 0
     for route in circular_routes:
         cur_grade = calculate_grade_of_circular_route(graph, route)
-        if best_path_grade > cur_grade:
+        # print("cur_grade", str(cur_grade))
+        #here we want to check which path closer to the length
+        if abs(cur_grade - length*1000) < abs(best_path_grade - length*1000):
+            print("cur_grade", str(cur_grade))
             best_path_grade = cur_grade
-            best_path = route
-    return best_path
+            path = route
+    return path
 
 
 def find_best_circular_route(city_graph, start_node, path_length):
     circular_routes = find_circular_routes(city_graph, start_node, path_length)
-    # best_path = find_best_circular_route_from_circular_route_list(city_graph, circular_routes)
-    # return best_path
-    return circular_routes[0]
+    best_path = find_best_circular_route_from_circular_route_list(city_graph, circular_routes, path_length)
+    return best_path
+    # print(circular_routes)
+    # return circular_routes[0]
 
+
+if __name__ == '__main__':
+    #test
+    city_graph = graphBuilding.get_graph_with_elevation_from_local("Jerusalem", 1)
+    start_node = list(city_graph.nodes())[0]
+    best_path = find_best_circular_route(city_graph, start_node, 5)
+
+    print(best_path)
 # if __name__ == '__main__':
     # city_graph = graphBuilding.get_city_graph()
     # start_node = list(city_graph.nodes())[0]

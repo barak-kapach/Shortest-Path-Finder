@@ -5,7 +5,15 @@ import gpxpy.gpx
    in this file we will create a gpx file with the shortest path. 
 """
 
+
 def export_shortest_path_to_gpx(city_graph, best_path, output_file):
+    """
+    Export the shortest path to a gpx file
+    :param city_graph: city graph object - osmnx graph
+    :param best_path: the shortest path we found and want to export
+    :param output_file: path to the output file
+    :return: None
+    """
     # create a gpx object
     gpx = gpxpy.gpx.GPX()
 

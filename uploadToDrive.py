@@ -4,6 +4,7 @@ import requests
 from google.oauth2 import service_account
 from google.auth.transport.requests import Request
 
+
 # Get the access token
 def get_access_token():
     credentials = service_account.Credentials.from_service_account_file(
@@ -50,12 +51,3 @@ def upload_to_drive(file_path):
     else:
         print(f"Failed to upload file. Status code: {r.status_code}")
         print(f"Response: {r.text}")
-
-
-
-
-
-
-
-
-

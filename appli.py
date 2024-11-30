@@ -41,7 +41,6 @@ def address_to_coordinates(street, number, city, country):
     else:
         return None
 
-#todo - order the function with the relevant functions we use
 def find_short_path(start_coords, street, number, city, country, slope_value):
     """
     This function will find the shortest path between two points in a city
@@ -51,8 +50,8 @@ def find_short_path(start_coords, street, number, city, country, slope_value):
     """
     #initialize the graph
     city_name = f"{city}, {country}"
-    # city_graph, nodes, edges = graphBuilding.get_city_graph_nodes_and_edges(city_name)
-    city_graph = graphBuilding.get_city_graph_with_elevation(city_name)
+
+    city_graph = graphBuilding.get_graph_with_elevation_from_local(city_name, slope_value)
     print("Got the graph")
 
     # Convert address to coordinates
@@ -62,18 +61,10 @@ def find_short_path(start_coords, street, number, city, country, slope_value):
     origin = ox.nearest_nodes(city_graph, start_coords[1], start_coords[0])
     destination = ox.nearest_nodes(city_graph, end_coords[1], end_coords[0])
 
-    # Add elevation data to the graph
-    # city_graph = graphBuilding.add_elevation_data_with_osmnx(city_graph)
-
-    #test for func getcitygraph with elevation
-    # city_graph = graphBuilding.get_city_graph_with_elevation(city_name)
-
     # Get the shortest path
     best_path = pathMaker.get_shortest_path(city_graph, origin, destination)
     expotrPath.export_shortest_path_to_gpx(city_graph, best_path, "shortest_path.gpx")
 
-    # Show the path in plot - > TODO - remove
-    ox.plot_graph_route(city_graph, best_path)
     print("Done with the path - run function")
 
     # Convert GPX to Google Maps link
@@ -83,9 +74,10 @@ def find_short_path(start_coords, street, number, city, country, slope_value):
 
 
 
-def generate_circular_route(street, number, city, country, path_length):
+def generate_circular_route(street, number, city, country, path_length, hills):
     # Get the city graph
-    city_graph, nodes, edges = graphBuilding.get_city_graph_nodes_and_edges(city)
+    city_name = f"{city}, {country}"
+    city_graph= graphBuilding.get_graph_with_elevation_from_local(city_name, hills)
 
     # Get the start coordinates from the address
     start_coords = address_to_coordinates(street, number, city, country)
@@ -103,42 +95,3 @@ def generate_circular_route(street, number, city, country, path_length):
     maps_link = convertGpxToMapsLink.get_google_maps_link("shortest_path.gpx")
 
     return maps_link
-
-
-# if __name__ == '__main__':
-
-
-#
-# def test_with_random():
-#     city_graph = graphBuilding.get_city_graph()
-#     print("Got the graph")
-#
-#     # Get a random node from the graph
-#     origin = list(city_graph.nodes())[0]
-#     ind = len(list(city_graph.nodes()))
-#     random_ind = Random.randint(0, ind)
-#     destination = list(city_graph.nodes())[random_ind]
-#     print(origin, destination, "this is the origin and destination")
-#
-#     # Get the shortest path
-#     best_path = pathMaker.get_shortest_path(city_graph, origin, destination)
-#     expotrPath.export_shortest_path_to_gpx(city_graph, best_path, "shortest_path.gpx")
-#
-#     # Show the path in plot
-#     ox.plot_graph_route(city_graph, best_path)
-#     print("Done with the path")
-#
-#     # Convert GPX to Google Maps link
-#     maps_link = convertGpxToMapsLink.get_google_maps_link("shortest_path.gpx")
-#     return maps_link
-
-
-
-# # - delete this function
-# def get_coordinates_from_address(address):
-#     geolocator = Nominatim(user_agent="geoapiExercises")
-#     location = geolocator.geocode(address)
-#     if location:
-#         return location.latitude, location.longitude
-#     else:
-#         raise ValueError("Address not found")

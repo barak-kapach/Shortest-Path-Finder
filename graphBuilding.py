@@ -1,9 +1,10 @@
-
-
+import pickle
 import time
 import osmnx as ox
+from matplotlib.pyplot import yticks
 from pyhigh import get_elevation
 import requests
+
 
 
 """
@@ -11,42 +12,13 @@ import requests
     the weight will be based on the height difference and the length of the path.
 """
 
-
-def get_city_graph_nodes_and_edges(city):
-    city_graph = ox.graph_from_place(city, network_type="drive")
-    nodes = city_graph.nodes()
-    edges = city_graph.edges(data=True)
-    # add_elevation_to_nodes(city_graph, "AIzaSyAHXqjPhuRDQVflHiW4V8ly_w580NE_eOc")
-    # add_weight_to_the_graph(city_graph, bike_weight_func)
-    return city_graph, nodes, edges
-
-
-def get_city_graph_with_elevation(city):
-    city_graph = ox.graph_from_place(city, network_type="drive")
-    # add the elevation to the nodes
-    # city_graph = add_elevation_data_with_osmnx(city_graph)
-    city_graph = add_height_diff_to_edges(city_graph)
-    city_graph = add_weight_to_the_graph(city_graph, bike_weight_func)
-    return city_graph
-
-
-def add_elevation_to_nodes(city_graph):
-    for node, data in city_graph.nodes(data=True):
-        lat = data['y']
-        lon = data['x']
-        elevation = get_elevation(lat, lon)
-        city_graph.nodes[node]['elevation'] = elevation
-    return city_graph
-
-
 def add_height_diff_to_edges(city_graph):
     for u, v, key, data in city_graph.edges(data=True, keys=True):
-        elev_u = get_elevetion_from_osmnx(city_graph.nodes[u]['y'], city_graph.nodes[u]['x'])
-        # elev_u = city_graph.nodes[u]['elevation']
-        elev_v = get_elevetion_from_osmnx(city_graph.nodes[v]['y'], city_graph.nodes[v]['x'])
-        # elev_v = city_graph.nodes[v]['elevation']
+        elev_v = city_graph.nodes[v]['elevation']
+        elev_u = city_graph.nodes[u]['elevation']
+        # print(elev_v, elev_u)
         data['height_diff'] = elev_v - elev_u
-        print(data['height_diff'])
+        # print(data['height_diff'])
     return city_graph
 
 
@@ -58,13 +30,12 @@ def bike_weight_func(u, v, data, hills_factor=1):
     height_diff = data.get('height_diff', 0)
     if height_diff > 0:
         # going up
-        data['weight'] = length + hills_factor * height_diff
+        data['weight'] = length +  height_diff**hills_factor
     else:
         # going down
         data['weight'] = max(1, abs(length + (height_diff * 2 * hills_factor)))  # (height * 2) is a negative number
 
     return data['weight']
-
 
 def add_weight_to_the_graph(city_graph, weight_func, hills_factor=1):
     for u, v, key, data in city_graph.edges(data=True, keys=True):
@@ -97,47 +68,55 @@ def add_elevation_data_with_osmnx(graph):
             graph.nodes[node]['elevation'] = elevation
         else:
             graph.nodes[node]['elevation'] = 0
-
         # to avoid the limit of the api request -> "error": "Per-second rate limit exceeded for the free hosted API.
         time.sleep(1)
     return graph
 
-import aiohttp
-import asyncio
 
-
-async def fetch_elevation(session, lat, lon):
-    url = f"https://api.opentopodata.org/v1/srtm90m?locations={lat},{lon}"
-    async with session.get(url) as response:
-        if response.status == 200:
-            results = await response.json()
-            return results.get('results', [])[0]['elevation']
-        return None
-
-
-async def add_elevation_data_with_osmnx_async(graph):
-    async with aiohttp.ClientSession() as session:
-        tasks = []
-        for node, data in graph.nodes(data=True):
-            lat = data['y']
-            lon = data['x']
-            tasks.append(fetch_elevation(session, lat, lon))
-
-        elevations = await asyncio.gather(*tasks)
-
-        for (node, data), elevation in zip(graph.nodes(data=True), elevations):
-            if elevation is not None:
-                print("eleveation: ", elevation)
-                graph.nodes[node]['elevation'] = elevation
-            else:
-                graph.nodes[node]['elevation'] = 0
-
+def add_elevation_data_to_the_graph_with_local_elevation_dict(graph):
+    #load the pickle file
+    with open("elevation_dict.pkl", "rb") as f:
+        elevation_dict = pickle.load(f)
+    lst_of_nodes_that_dont_have_elevation = []
+    for node, data in graph.nodes(data=True):
+        lat = data['y']
+        lon = data['x']
+        #check if the lat and lon are in the dict
+        if lat in elevation_dict and lon in elevation_dict[lat]:
+            elev = elevation_dict[lat][lon]
+        else:
+            lst_of_nodes_that_dont_have_elevation.append((lat, lon))
+            elev = 0
+            # node = ox.nearest_nodes(graph, lon, lat)
+            # print("node", node)
+            # lon, lat = node['y'], node['x']
+            # elev = elevation_dict[lat][lon]
+        # try:
+        #     elev = elevation_dict[lat][lon]
+        # except KeyError:
+        #     node = ox.nearest_nodes(graph, lon, lat)
+        #     lat, lon = graph.nodes[node]['y'], graph.nodes[node]['x']
+        #     elev = elevation_dict[lat][lon]
+        #     print("KeyError")
+        graph.nodes[node]['elevation'] = elev
+    print("")
+    print(lst_of_nodes_that_dont_have_elevation)
+    print(len(lst_of_nodes_that_dont_have_elevation))
     return graph
 
-if __name__ == '__main__':
-    #test to add weight to edges
-    city_graph, nodes, edges = get_city_graph_nodes_and_edges("Jerusalem")
-    add_height_diff_to_edges(city_graph)
+def get_graph_with_elevation_from_local(city, slope_value=1):
+    graph = ox.graph_from_place(city, network_type="bike")
+    print("Got the graph")
+    graph = add_elevation_data_to_the_graph_with_local_elevation_dict(graph)
+    print("Added the elevation data")
+    graph = add_height_diff_to_edges(graph)
+    print("Added the height difference")
+    graph = add_weight_to_the_graph(graph, bike_weight_func, slope_value)
+    return graph
+
+# if __name__ == '__main__':
+#     #test the functions
+#     city_graph = get_graph_with_elevation_from_local("Jerusalem")
 
 
 
@@ -248,3 +227,50 @@ if __name__ == '__main__':
 #     data['height_diff'] = elev_v - elev_u
 #     # we don't use abs because in the weight func we want to know if we are going up or down
 #     print(data['height_diff'])
+
+
+#
+# async def fetch_elevation(session, lat, lon):
+#     url = f"https://api.opentopodata.org/v1/srtm90m?locations={lat},{lon}"
+#     async with session.get(url) as response:
+#         if response.status == 200:
+#             results = await response.json()
+#             return results.get('results', [])[0]['elevation']
+#         return None
+#
+#
+# async def add_elevation_data_with_osmnx_async(graph):
+#     async with aiohttp.ClientSession() as session:
+#         tasks = []
+#         for node, data in graph.nodes(data=True):
+#             lat = data['y']
+#             lon = data['x']
+#             tasks.append(fetch_elevation(session, lat, lon))
+#
+#         elevations = await asyncio.gather(*tasks)
+#
+#         for (node, data), elevation in zip(graph.nodes(data=True), elevations):
+#             if elevation is not None:
+#                 print("eleveation: ", elevation)
+#                 graph.nodes[node]['elevation'] = elevation
+#             else:
+#                 graph.nodes[node]['elevation'] = 0
+#
+#     return graph
+
+
+# def add_elevation_to_nodes(city_graph):
+#     for node, data in city_graph.nodes(data=True):
+#         lat = data['y']
+#         lon = data['x']
+#         elevation = get_elevation(lat, lon)
+#         city_graph.nodes[node]['elevation'] = elevation
+#     return city_graph
+
+if __name__ == '__main__':
+    g = get_graph_with_elevation_from_local("Jerusalem")
+    print("hh")
+    with open('elevation_dict.pkl', 'rb') as handle:
+        data = pickle.load(handle)
+        for u, v, key, data in g.edges(data=True, keys=True):
+            print(data['height_diff'])
