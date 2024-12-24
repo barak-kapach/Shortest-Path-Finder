@@ -63,10 +63,6 @@ Shortest-Path-Finder is a Python-based tool designed to calculate the most effic
 
 Contributions are welcome! Please fork the repository and create a pull request with your enhancements or bug fixes.
 
-**License**
-
-This project is licensed under the MIT License. See the LICENSE file for details.
-
 **Acknowledgments**
 
 Special thanks to all contributors and the open-source community for their invaluable support and resources.
