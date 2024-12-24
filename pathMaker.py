@@ -1,11 +1,19 @@
 import osmnx as ox
 
 """
-    in this file we create a weight function and find the shortest path.
+in this file we create a weight function and find the shortest path.
 """
 
 
 def get_shortest_path(city_graph, origin, destination, weight='weight'):
+    """
+    find the shortest path between two nodes
+    :param city_graph: city graph object - osmnx graph
+    :param origin: the origin node
+    :param destination: the destination node
+    :param weight: the weight of the path
+    :return: the shortest path
+    """
     # use the shortest path function from osmnx
     shortest_path = ox.shortest_path(city_graph, origin, destination, weight)
     return shortest_path
@@ -13,6 +21,15 @@ def get_shortest_path(city_graph, origin, destination, weight='weight'):
 
 # find the k shortest paths
 def get_k_shortest_paths(city_graph, origin, destination, k, weight='weight'):
+    """
+    find the k shortest paths between two nodes
+    :param city_graph: city graph object - osmnx graph
+    :param origin: the origin node
+    :param destination: the destination node
+    :param k: the number of shortest paths
+    :param weight: the weight of the path
+    :return: the k shortest paths
+    """
     # use the k_shortest_paths function from osmnx
     k_shortest_paths = ox.k_shortest_paths(city_graph, origin, destination, k, weight)
     return k_shortest_paths

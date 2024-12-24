@@ -8,6 +8,10 @@ from google.auth.transport.requests import Request
 
 
 def get_access_token():
+    """
+    Get access token from Google
+    :return: access token
+    """
     credentials = service_account.Credentials.from_service_account_file(
         'credentials.json',
         scopes=['https://www.googleapis.com/auth/drive']
@@ -17,6 +21,11 @@ def get_access_token():
 
 
 def upload_to_drive(file_path):
+    """
+    Upload a file to Google Drive
+    :param file_path: path to the file
+    :return: None
+    """
     token = get_access_token()
     headers = {
         "Authorization": f"Bearer {token}",
